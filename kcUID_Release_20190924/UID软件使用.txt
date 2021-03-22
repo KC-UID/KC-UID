@@ -1,0 +1,26 @@
+1. 对于我们UID的数据，我们建议先对reads进行clean去接头，clean完成之后再运行我们的UID软件
+
+对于接头残留的情况，我们建议您采用Trimmomatic去接头：
+java -jar /home/soft/Trimmomatic-0.36/trimmomatic-0.36.jar PE -threads {threads} -phred33 {input.r1} {input.r2} {output.paired_r1} {output.unpaired_r1} {output.paired_r2} {output.unpaired_r2}  ILLUMINACLIP:{adaptor.fa}:2:30:5 LEADING:3 TRAILING:3  SLIDINGWINDOW:4:15 HEADCROP:0 MINLEN:36
+
+其中adaptor.fa中的内容为：
+>p5
+GTTCAGAGTTCTACAGTCCGACGATC
+>p5_as
+GATCGTCGGACTGTAGAACTCTGAAC
+>p7
+TGGAATTCTCGGGTGCCAAGGAACTCCAGTCAC
+>p7_as
+GTGACTGGAGTTCCTTGGCACCCGAGAATTCCA
+
+2. 去完接头之后，您可以用我们的uid软件进行UID去重处理。
+
+UID的软件的安装和使用在我们这个软件的包中都有相应的说明，
+概括来讲安装方面，需要先安装我们这个软件里面的kcUIDReport这个R包（相关的依赖已经在里面注明），这个包主要是后期生成文档用
+UID的软件已经是可执行文件，修改其为可执行之后，即可以运行，可以分步运行（有详细的说明），也可以一步完成：
+kcUID -r1 {input.r1} -r2 {input.r2} -n {threads} -o {output.out_dir} -s {samplename} -f fastq
+
+3. UID处理之后即可以进行比对相关后续分析。如果涉及到比对链相关参数，比如hisat
+hisat2 -x {params.hisat_idx} -p 10 --fr -1 {r1} -2 {r2} -S {sam} --rna-strandness FR
+而STAR则不需要提供链相关的参数
+其它计算表达量等相关工具，请以 fr-secondstrand 建库方式去指定。
